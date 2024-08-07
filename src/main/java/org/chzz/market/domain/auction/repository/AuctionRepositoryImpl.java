@@ -1,7 +1,7 @@
 package org.chzz.market.domain.auction.repository;
 
-import static org.chzz.market.domain.auction.entity.Auction.Status.ENDED;
-import static org.chzz.market.domain.auction.entity.Auction.Status.PROCEEDING;
+import static org.chzz.market.domain.auction.entity.Auction.AuctionStatus.PROCEEDING;
+import static org.chzz.market.domain.auction.entity.Auction.AuctionStatus.ENDED;
 import static org.chzz.market.domain.auction.entity.QAuction.auction;
 import static org.chzz.market.domain.auction.entity.SortType.CHEAP;
 import static org.chzz.market.domain.auction.entity.SortType.EXPENSIVE;

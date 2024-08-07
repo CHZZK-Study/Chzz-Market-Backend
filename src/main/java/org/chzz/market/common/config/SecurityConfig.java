@@ -19,6 +19,7 @@ public class SecurityConfig {
         return http.authorizeHttpRequests(
                         authorizationManagerRequestMatcherRegistry -> authorizationManagerRequestMatcherRegistry
                                 .requestMatchers(ACTUATOR).permitAll()
+                                .requestMatchers("api/v1/products/*").permitAll()
                                 .requestMatchers("/api/v1/auctions").permitAll()
                                 .anyRequest().authenticated()
                 )

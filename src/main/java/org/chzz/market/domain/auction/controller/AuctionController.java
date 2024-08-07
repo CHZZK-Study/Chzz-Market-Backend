@@ -1,9 +1,6 @@
 package org.chzz.market.domain.auction.controller;
 
-import java.net.URI;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.chzz.market.domain.auction.dto.request.AuctionCreateRequest;
 import org.chzz.market.domain.auction.service.AuctionService;
 import org.chzz.market.domain.product.entity.Product.Category;
 import org.chzz.market.domain.auction.entity.SortType;
@@ -17,14 +14,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auctions")
 public class AuctionController {
     private final AuctionService auctionService;
-
-    @PostMapping
-    public ResponseEntity<Void> createAuction(@ModelAttribute @Valid AuctionCreateRequest dto) {
-        Long auctionId = auctionService.createAuction(dto);
-        return ResponseEntity
-                .created(URI.create("/api/v1/auctions/" + auctionId))
-                .build();
-    }
 
     @GetMapping
     public ResponseEntity<?> getAuctionList(@RequestParam Category category,

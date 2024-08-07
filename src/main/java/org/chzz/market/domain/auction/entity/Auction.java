@@ -18,6 +18,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.chzz.market.common.validation.annotation.ThousandMultiple;
+import org.chzz.market.domain.auction.error.AuctionErrorCode;
+import org.chzz.market.domain.auction.error.AuctionException;
 import org.chzz.market.domain.base.entity.BaseTimeEntity;
 import org.chzz.market.domain.product.entity.Product;
 import org.chzz.market.domain.user.entity.User;
@@ -51,11 +53,11 @@ public class Auction extends BaseTimeEntity {
 
     @Column(columnDefinition = "varchar(20)")
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private AuctionStatus status;
 
     // 경매가 진행 중인지 확인
     public boolean isProceeding() {
-        return status == Status.PROCEEDING;
+        return status == AuctionStatus.PROCEEDING;
     }
 
     // 경매가 종료되었는지 확인
@@ -70,12 +72,20 @@ public class Auction extends BaseTimeEntity {
 
     @Getter
     @AllArgsConstructor
-    public enum Status {
+    public enum AuctionStatus {
         PENDING("대기 중"),
         PROCEEDING("진행 중"),
         ENDED("종료"),
         CANCELLED("취소 됨");
 
         private final String description;
+    }
+
+    // 대기 중 -> 진행 중 상태 변경
+    public void convertToProceeding() {
+        if (this.status != AuctionStatus.PENDING) {
+            throw new AuctionException(AuctionErrorCode.INVALID_AUCTION_STATE);
+        }
+        this.status = AuctionStatus.PROCEEDING;
     }
 }

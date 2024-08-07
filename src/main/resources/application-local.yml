@@ -2,10 +2,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQLDialect
+#
   datasource:
     url: jdbc:mysql://chzzdb:3306/chzzdb?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root

@@ -4,7 +4,7 @@ package org.chzz.market.common.error.handler;
 import static org.chzz.market.common.error.GlobalErrorCode.INTERNAL_SERVER_ERROR;
 
 import lombok.extern.slf4j.Slf4j;
-import org.chzz.market.common.error.BusinessException;
+import org.chzz.market.common.error.exception.BusinessException;
 import org.chzz.market.common.error.ErrorCode;
 import org.chzz.market.common.error.ErrorResponse;
 import org.chzz.market.common.error.GlobalErrorCode;

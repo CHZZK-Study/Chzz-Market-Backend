@@ -11,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -19,8 +18,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.chzz.market.common.validation.annotation.ThousandMultiple;
 import org.chzz.market.domain.base.entity.BaseTimeEntity;
 import org.chzz.market.domain.like.entity.Like;
+import org.chzz.market.domain.product.error.ProductException;
+import org.chzz.market.domain.product.error.ProductErrorCode;
 import org.chzz.market.domain.user.entity.User;
 
 @Getter
@@ -50,6 +52,16 @@ public class Product extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private Category category;
 
+    // 사전 등록에도 경매 시작가는 포함
+    @Column(nullable = false)
+    @ThousandMultiple
+    private Integer minPrice;
+
+    // 상품도 상태 관리가 필요함
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProductStatus status;
+
     @Builder.Default
     @OneToMany(mappedBy = "product")
     private List<Like> likes = new ArrayList<>();
@@ -68,4 +80,32 @@ public class Product extends BaseTimeEntity {
 
         private final String displayName;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public enum ProductStatus {
+        PRE_REGISTERED("사전 등록"),
+        IN_AUCTION("경매 등록"),
+        SOLD("판매 완료"),
+        CANCELLED("취소 됨");
+
+        private final String description;
+    }
+
+    // 사전 등록 -> 경매 등록 상태 변경
+    public void convertToAuction() {
+        if (this.status != ProductStatus.PRE_REGISTERED) {
+            throw new ProductException(ProductErrorCode.INVALID_PRODUCT_STATE);
+        }
+        this.status = ProductStatus.IN_AUCTION;
+    }
+
+    // 경매 등록 -> 판매 됨 상태 변경
+    public void convertToSold() {
+        if (this.status != ProductStatus.IN_AUCTION) {
+            throw new IllegalStateException("경매 중인 제품만 판매됨으로 표시할 수 있습니다.");
+        }
+        this.status = ProductStatus.SOLD;
+    }
+
 }

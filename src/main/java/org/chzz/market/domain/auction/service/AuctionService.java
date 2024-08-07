@@ -2,27 +2,22 @@ package org.chzz.market.domain.auction.service;
 
 import static org.chzz.market.domain.auction.error.AuctionErrorCode.AUCTION_NOT_ACCESSIBLE;
 import static org.chzz.market.domain.auction.error.AuctionErrorCode.AUCTION_NOT_FOUND;
-
-import java.util.List;
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.chzz.market.domain.auction.dto.AuctionDetailsResponse;
-import org.chzz.market.domain.auction.dto.AuctionResponse;
-import org.chzz.market.domain.auction.dto.request.AuctionCreateRequest;
-import org.chzz.market.domain.auction.entity.Auction;
-import org.chzz.market.domain.auction.entity.SortType;
-import org.chzz.market.domain.auction.error.AuctionException;
-import org.chzz.market.domain.auction.repository.AuctionRepository;
-import org.chzz.market.domain.image.service.ImageService;
-import org.chzz.market.domain.product.entity.Product;
-import org.chzz.market.domain.product.entity.Product.Category;
-import org.chzz.market.domain.product.repository.ProductRepository;
-import org.chzz.market.domain.user.entity.User;
-import org.chzz.market.domain.user.error.UserErrorCode;
-import org.chzz.market.domain.user.error.UserException;
-import org.chzz.market.domain.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+
+import org.chzz.market.domain.auction.error.AuctionErrorCode;
+import org.chzz.market.domain.auction.error.AuctionException;
+import org.chzz.market.domain.auction.entity.Auction;
+import org.chzz.market.domain.auction.dto.AuctionResponse;
+import org.chzz.market.domain.auction.entity.SortType;
+import org.chzz.market.domain.auction.repository.AuctionRepository;
+import org.chzz.market.domain.product.entity.Product;
+import org.chzz.market.domain.product.entity.Product.Category;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,42 +30,50 @@ public class AuctionService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuctionService.class);
 
-    private final ProductRepository productRepository;
     private final AuctionRepository auctionRepository;
-    private final ImageService imageService;
-    private final UserRepository userRepository;
 
-    @Transactional
-    public Long createAuction(AuctionCreateRequest dto) {
-
-        // 사용자 데이터 조회
-        User seller = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
-
-        // 상품 데이터 저장
-        Product product = Product.builder()
-                .name(dto.getTitle())
-                .description(dto.getDescription())
-                .category(dto.getCategory())
-                .user(seller)
-                .build();
-        product = productRepository.save(product);
-
-        // 경매 데이터 저장
+    /**
+     * 경매 상품 진행 상태로 저장
+     */
+    public void proceedingAuctionForProduct(Product product) {
         Auction auction = Auction.builder()
                 .product(product)
-                .minPrice(dto.getMinPrice())
-                .status(dto.isPreOrder() ? Auction.Status.PENDING : Auction.Status.PROCEEDING)
+                .minPrice(product.getMinPrice())
+                .status(Auction.AuctionStatus.PROCEEDING)
                 .build();
-        auction = auctionRepository.save(auction);
 
-        // 이미지 처리
-        List<String> cdnPaths = imageService.saveProductImages(product, dto.getImages());
+        auctionRepository.save(auction);
+    }
 
-        // 이미지 URL Logging
-        cdnPaths.forEach(path -> logger.info("Uploaded image path: {}", imageService.getFullImageUrl(path)));
+    /**
+     * 경매 상품 대기 상태로 저장
+     */
+    public void pendingAuctionForProduct(Product product) {
+        Auction auction = Auction.builder()
+                .product(product)
+                .minPrice(product.getMinPrice())
+                .status(Auction.AuctionStatus.PENDING)
+                .build();
 
-        return auction.getId();
+        auctionRepository.save(auction);
+    }
+
+    /**
+     * 경매 대기 상품 -> 진행 상태로 전환
+     */
+    public void convertPendingToProceeding(Product product){
+        // 경매 상품 유효성 검사
+        Auction auction = auctionRepository.findByProduct(product)
+                .orElseThrow(() -> new AuctionException(AuctionErrorCode.AUCTION_NOT_FOUND));
+
+        // 경매 상품 상태 유효성 검사
+        if (auction.getStatus() != Auction.AuctionStatus.PENDING) {
+            throw new AuctionException(AuctionErrorCode.INVALID_AUCTION_STATE);
+        }
+
+        // 경매 상품 상태 전환 및 저장
+        auction.convertToProceeding();
+        auctionRepository.save(auction);
     }
 
     public Auction getAuction(Long auctionId) {
@@ -79,7 +82,7 @@ public class AuctionService {
     }
 
     public Page<AuctionResponse> getAuctionListByCategory(Category category, SortType sortType, Long userId,
-                                                          Pageable pageable) {
+                                                      Pageable pageable) {
         return auctionRepository.findAuctionsByCategory(category, sortType, userId, pageable);
     }
 

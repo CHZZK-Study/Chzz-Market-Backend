@@ -1,6 +1,7 @@
-package org.chzz.market.common.error;
+package org.chzz.market.common.error.exception;
 
 import lombok.Getter;
+import org.chzz.market.common.error.ErrorCode;
 
 @Getter
 public class BusinessException extends RuntimeException {

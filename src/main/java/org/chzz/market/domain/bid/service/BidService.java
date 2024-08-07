@@ -13,7 +13,7 @@ import org.chzz.market.domain.bid.dto.BidCreateRequest;
 import org.chzz.market.domain.bid.error.BidException;
 import org.chzz.market.domain.bid.repository.BidRepository;
 import org.chzz.market.domain.user.entity.User;
-import org.chzz.market.domain.user.error.UserException;
+import org.chzz.market.domain.user.error.exception.UserException;
 import org.chzz.market.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

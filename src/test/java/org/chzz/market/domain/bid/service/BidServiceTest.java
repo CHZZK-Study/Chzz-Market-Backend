@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.chzz.market.domain.auction.entity.Auction;
-import org.chzz.market.domain.auction.entity.Auction.Status;
+import org.chzz.market.domain.auction.entity.Auction.AuctionStatus;
 import org.chzz.market.domain.auction.error.AuctionException;
 import org.chzz.market.domain.auction.service.AuctionService;
 import org.chzz.market.domain.bid.dto.BidCreateRequest;
@@ -59,11 +59,11 @@ class BidServiceTest {
         product = Product.builder().id(1L).user(user).name("제품1").category(Category.FASHION_AND_CLOTHING).build();
         product2 = Product.builder().id(2L).user(user).name("제품2").category(Category.FASHION_AND_CLOTHING).build();
         product3 = Product.builder().id(3L).user(user).name("제품3").category(Category.FASHION_AND_CLOTHING).build();
-        auction = Auction.builder().id(1L).product(product).minPrice(1000).status(Status.PROCEEDING)
+        auction = Auction.builder().id(1L).product(product).minPrice(1000).status(AuctionStatus.PROCEEDING)
                 .endDateTime(LocalDateTime.now().plusDays(1)).build();
-        completeAuction = Auction.builder().id(2L).product(product2).minPrice(1000).status(Status.ENDED)
+        completeAuction = Auction.builder().id(2L).product(product2).minPrice(1000).status(AuctionStatus.ENDED)
                 .endDateTime(LocalDateTime.now().minusDays(1)).build();
-        endAuction = Auction.builder().id(3L).product(product3).minPrice(1000).status(Status.PROCEEDING)
+        endAuction = Auction.builder().id(3L).product(product3).minPrice(1000).status(AuctionStatus.PROCEEDING)
                 .endDateTime(LocalDateTime.now().minusDays(1)).build();
     }
 

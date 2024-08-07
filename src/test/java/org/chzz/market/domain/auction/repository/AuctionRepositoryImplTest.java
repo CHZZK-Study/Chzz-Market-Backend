@@ -1,6 +1,7 @@
 package org.chzz.market.domain.auction.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.chzz.market.domain.product.entity.Product.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,7 +10,7 @@ import org.chzz.market.common.DatabaseTest;
 import org.chzz.market.domain.auction.dto.AuctionDetailsResponse;
 import org.chzz.market.domain.auction.dto.AuctionResponse;
 import org.chzz.market.domain.auction.entity.Auction;
-import org.chzz.market.domain.auction.entity.Auction.Status;
+import org.chzz.market.domain.auction.entity.Auction.AuctionStatus;
 import org.chzz.market.domain.auction.entity.SortType;
 import org.chzz.market.domain.bid.entity.Bid;
 import org.chzz.market.domain.bid.repository.BidRepository;
@@ -67,19 +68,19 @@ class AuctionRepositoryImplTest {
         user3 = User.builder().providerId("123456").nickname("닉네임3").email("asd12@naver.com").build();
         userRepository.saveAll(List.of(user1, user2, user3));
 
-        product1 = Product.builder().user(user1).name("제품1").category(Category.FASHION_AND_CLOTHING).build();
-        product2 = Product.builder().user(user1).name("제품2").category(Category.BOOKS_AND_MEDIA).build();
-        product3 = Product.builder().user(user2).name("제품3").category(Category.FASHION_AND_CLOTHING).build();
-        product4 = Product.builder().user(user2).name("제품4").category(Category.FASHION_AND_CLOTHING).build();
+        product1 = builder().user(user1).name("제품1").category(Category.FASHION_AND_CLOTHING).minPrice(1000).status(ProductStatus.PRE_REGISTERED).build();
+        product2 = builder().user(user1).name("제품2").category(Category.BOOKS_AND_MEDIA).minPrice(1000).status(ProductStatus.PRE_REGISTERED).build();
+        product3 = builder().user(user2).name("제품3").category(Category.FASHION_AND_CLOTHING).minPrice(1000).status(ProductStatus.PRE_REGISTERED).build();
+        product4 = builder().user(user2).name("제품4").category(Category.FASHION_AND_CLOTHING).minPrice(1000).status(ProductStatus.PRE_REGISTERED).build();
         productRepository.saveAll(List.of(product1, product2, product3, product4));
 
-        auction1 = Auction.builder().product(product1).minPrice(1000).status(Status.PROCEEDING)
+        auction1 = Auction.builder().product(product1).minPrice(1000).status(AuctionStatus.PROCEEDING)
                 .endDateTime(LocalDateTime.now().plusDays(1)).build();
-        auction2 = Auction.builder().product(product2).minPrice(2000).status(Status.PROCEEDING)
+        auction2 = Auction.builder().product(product2).minPrice(2000).status(AuctionStatus.PROCEEDING)
                 .endDateTime(LocalDateTime.now().plusDays(1)).build();
-        auction3 = Auction.builder().product(product3).minPrice(3000).status(Status.PROCEEDING)
+        auction3 = Auction.builder().product(product3).minPrice(3000).status(AuctionStatus.PROCEEDING)
                 .endDateTime(LocalDateTime.now().plusDays(1)).build();
-        auction4 = Auction.builder().product(product4).minPrice(3000).status(Status.CANCELLED)
+        auction4 = Auction.builder().product(product4).minPrice(3000).status(AuctionStatus.CANCELLED)
                 .endDateTime(LocalDateTime.now().plusDays(1)).build();
         auctionRepository.saveAll(List.of(auction1, auction2, auction3, auction4));
 
