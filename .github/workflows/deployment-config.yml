@@ -1,0 +1,85 @@
+name: CICD
+run-name: Running
+on:
+  push:
+    branches:
+      - release
+  pull_request:
+    branches:
+      - release
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: chzz-rep
+  ECS_SERVICE: chzz-market
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: develop
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: AWS credential 설정
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: S3에서 설정파일 복사
+        run: |
+          aws s3 cp s3://chzzmarket-production-storage/chzz-production-properties/application-prod.yml \
+          ./src/main/resources/application-prod.yml
+
+      - name: gradle 실행 권한 부여
+        run: chmod +x ./gradlew
+
+      - name: gradle 빌드
+        run: ./gradlew build
+
+#      ECR 로그인 결과를 사용해 ECR 경로를 받아 Docker image를 전달
+      - name: docker 빌드, 및 ECR 배포
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          DOCKERFILE_DIR: .
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $DOCKERFILE_DIR
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: task definition 다운로드
+        run: |
+          aws ecs describe-task-definition --task-definition chzz-task --query taskDefinition > task-definition.json
+
+#      빌드한 docker image를 다운로드한 task definition를 통해 서비스에 올림
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: chzz-rep
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: ECS로 배포
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: chzz-service
+          cluster: chzz-cluster
+          wait-for-service-stability: true

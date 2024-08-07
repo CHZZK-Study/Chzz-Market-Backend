@@ -1,0 +1,52 @@
+name: Java CI with Gradle!
+
+on:
+  pull_request:
+    branches: ["develop"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'corretto'
+        cache: 'gradle'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |  
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+      
+    - name: Build with Gradle
+      run: ./gradlew build -x test -i
+    
+    - name: Test with Gradle
+      run: |
+        ./gradlew -Dspring.profiles.active=test \
+        -Dcloud.aws.credentials.access-key=${{ secrets.S3_AWS_ACCESS_KEY_ID }} \
+        -Dcloud.aws.credentials.secret-key=${{ secrets.S3_AWS_SECRET_ACCESS_KEY }} \
+        -Dcloud.aws.region.static=${{ secrets.AWS_REGION }} \
+        -Dcloud.aws.s3.bucket=${{ secrets.AWS_S3_BUCKET }} \
+        -Dcloud.aws.cloudfront.domain=${{ secrets.AWS_CLOUDFRONT_DOMAIN }} \
+        -Dpayment.toss.client-key=${{ secrets.TEST_CLIENT_KEY }} \
+        -Dpayment.toss.security-key=${{ secrets.TEST_SECRET_KEY }} \
+        test -i
+        

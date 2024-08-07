@@ -1,14 +1,20 @@
+version: '3.8'
 services:
-  mysql:
-    image: 'mysql:latest'
+  chzzdb:
+    image: mysql:latest
+    container_name: chzzdb
     environment:
-      - 'MYSQL_DATABASE=mydatabase'
-      - 'MYSQL_PASSWORD=secret'
-      - 'MYSQL_ROOT_PASSWORD=verysecret'
-      - 'MYSQL_USER=myuser'
+      MYSQL_ROOT_PASSWORD: qal,1
+      MYSQL_DATABASE: chzzdb
     ports:
-      - '3306'
-  redis:
-    image: 'redis:latest'
+      - "3306:3306"
+
+
+  chzz-redis:
+    container_name: chzz-redis
+    image: redis:latest
+    restart: always
     ports:
-      - '6379'
+      - "6379:6379"
+
+
