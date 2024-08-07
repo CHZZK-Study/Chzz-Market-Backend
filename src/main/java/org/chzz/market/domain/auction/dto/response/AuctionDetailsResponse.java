@@ -1,9 +1,8 @@
-package org.chzz.market.domain.auction.dto;
+package org.chzz.market.domain.auction.dto.response;
 
 import static org.chzz.market.domain.auction.entity.Auction.Status;
 
 import com.querydsl.core.annotations.QueryProjection;
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
