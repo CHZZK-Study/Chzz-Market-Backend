@@ -17,6 +17,10 @@ spring:
       properties:
         hibernate:
           dialect: org.hibernate.dialect.H2Dialect
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 cloud:
   aws:
     credentials:

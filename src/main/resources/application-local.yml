@@ -1,18 +1,34 @@
 spring:
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: create
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
   datasource:
     url: jdbc:mysql://chzzdb:3306/chzzdb?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
     password: qal,1
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-
+  data:
+    redis:
+      host: localhost
+      port: 6379
+cloud:
+  aws:
+    credentials:
+      access-key: test
+      secret-key: test
+    region:
+      static: test
+    s3:
+      bucket: test
+    cloudfront:
+      domain: https://test.cloudfront.net
 payment:
   toss:
     client-key: test_ck_P9BRQmyarYleDvqAJl9vVJ07KzLN
@@ -20,6 +36,7 @@ payment:
 logging:
   level:
     org.springframework.security: trace
+    org.hibernate.orm.jdbc.bind: trace
 
 management:
   endpoints:

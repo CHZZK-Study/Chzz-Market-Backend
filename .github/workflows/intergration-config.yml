@@ -34,7 +34,10 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-      
+
+    - name: Redis Server in GitHub Actions
+      uses: supercharge/redis-github-action@1.8.0
+
     - name: Build with Gradle
       run: ./gradlew build -x test -i
     
@@ -48,5 +51,7 @@ jobs:
         -Dcloud.aws.cloudfront.domain=${{ secrets.AWS_CLOUDFRONT_DOMAIN }} \
         -Dpayment.toss.client-key=${{ secrets.TEST_CLIENT_KEY }} \
         -Dpayment.toss.security-key=${{ secrets.TEST_SECRET_KEY }} \
+        -Dspring.data.redis.host=${{ secrets.TEST_REDIS_HOST }} \
+        -Dspring.data.redis.port=${{ secrets.TEST_REDIS_PORT }} \
         test -i
         
