@@ -1,5 +1,8 @@
 package org.chzz.market.domain.auction.service.register;
 
+import static org.chzz.market.domain.user.error.UserErrorCode.USER_NOT_FOUND;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.chzz.market.domain.auction.dto.request.BaseRegisterRequest;
 import org.chzz.market.domain.auction.dto.response.PreRegisterResponse;
@@ -13,10 +16,6 @@ import org.chzz.market.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
-
-import static org.chzz.market.domain.user.error.UserErrorCode.*;
 
 @Service
 @RequiredArgsConstructor

@@ -1,5 +1,9 @@
 package org.chzz.market.domain.auction.service.register;
 
+import static org.chzz.market.domain.auction.type.AuctionStatus.PROCEEDING;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.chzz.market.domain.auction.dto.request.BaseRegisterRequest;
 import org.chzz.market.domain.auction.dto.response.RegisterAuctionResponse;
@@ -16,11 +20,6 @@ import org.chzz.market.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.chzz.market.domain.auction.type.AuctionStatus.PROCEEDING;
 
 @Service
 @RequiredArgsConstructor
@@ -39,10 +38,10 @@ public class AuctionRegisterService implements AuctionRegistrationService {
         Product product = createProduct(request, user);
         Product savedProduct = productRepository.save(product);
 
-        if (images != null && !images.isEmpty()) {
-            List<String> imageUrls = imageService.uploadImages(images);
-            imageService.saveProductImageEntities(savedProduct, imageUrls);
-        }
+        List<String> imageUrls = imageService.uploadImages(images);
+        imageService.saveProductImageEntities(savedProduct, imageUrls);
+
+        imageService.validateImageSize(product.getId());
 
         Auction auction = createAuction(savedProduct);
         auctionRepository.save(auction);

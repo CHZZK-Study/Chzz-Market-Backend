@@ -14,6 +14,7 @@ public enum ProductErrorCode implements ErrorCode {
     PRODUCT_ALREADY_AUCTIONED(HttpStatus.BAD_REQUEST, "상품이 이미 경매로 등록되어 삭제할 수 없습니다."),
     FORBIDDEN_PRODUCT_ACCESS(HttpStatus.FORBIDDEN, "상품에 접근할 수 없습니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
+    IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "상품 이미지를 찾을 수 없습니다."),
     PRODUCT_NOT_FOUND_OR_IN_AUCTION(HttpStatus.NOT_FOUND, "상품을 찾을 수 없거나 경매 상태입니다.");
 
     private final HttpStatus httpStatus;

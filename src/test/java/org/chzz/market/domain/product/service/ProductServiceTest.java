@@ -8,9 +8,8 @@ import static org.chzz.market.domain.product.entity.Product.Category.HOME_APPLIA
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,11 +17,12 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.chzz.market.domain.auction.repository.AuctionRepository;
 import org.chzz.market.domain.image.entity.Image;
-import org.chzz.market.domain.image.repository.ImageRepository;
 import org.chzz.market.domain.image.service.ImageService;
 import org.chzz.market.domain.product.dto.DeleteProductResponse;
 import org.chzz.market.domain.product.dto.ProductResponse;
@@ -55,9 +55,6 @@ public class ProductServiceTest {
 
     @Mock
     private ProductRepository productRepository;
-
-    @Mock
-    private ImageRepository imageRepository;
 
     @Mock
     private ImageService imageService;
@@ -119,7 +116,7 @@ public class ProductServiceTest {
                 .description("수정된 설명")
                 .category(HOME_APPLIANCES)
                 .minPrice(20000)
-                .deleteImageList(List.of(1L, 2L))
+                .imageSequence(Map.of(1L, 1, 2L, 2))
                 .build();
 
         updateRequest2 = UpdateProductRequest.builder()
@@ -127,7 +124,7 @@ public class ProductServiceTest {
                 .description("수정된 설명")
                 .category(HOME_APPLIANCES)
                 .minPrice(20000)
-                .deleteImageList(Collections.emptyList())
+                .imageSequence(Collections.emptyMap())
                 .build();
 
         System.setProperty("org.mockito.logging.verbosity", "all");
@@ -141,18 +138,11 @@ public class ProductServiceTest {
         @DisplayName("1. 유효한 요청으로 사전 등록 상품 수정 성공 응답")
         void updateProduct_Success() {
             // given
-            List<MultipartFile> newImages = createMockMultipartFiles();
+            Map<String, MultipartFile> newImages = createMockMultipartFiles();
             List<Image> existingImages = createExistingImages();
             existingProduct.addImages(existingImages);
 
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(existingProduct));
-            when(auctionRepository.existsByProductId(anyLong())).thenReturn(false);
-            when(imageService.uploadImages(anyList())).thenReturn(Arrays.asList("testImage1.jpg", "testImage2.jpg"));
-            when(imageService.saveProductImageEntities(any(Product.class), anyList()))
-                    .thenReturn(List.of(
-                            new Image(3L, "new_image1.jpg", existingProduct),
-                            new Image(4L, "new_image2.jpg", existingProduct))
-                    );
 
             // when
             UpdateProductResponse response = productService.updateProduct(
@@ -170,10 +160,11 @@ public class ProductServiceTest {
             assertThat(response.minPrice()).isEqualTo(20000);
             assertEquals(2, response.imageUrls().size());
 
-            assertThat(response.imageUrls().get(0).imageUrl()).isEqualTo("new_image1.jpg");
-            assertThat(response.imageUrls().get(0).imageId()).isEqualTo(3L);
-            assertThat(response.imageUrls().get(1).imageUrl()).isEqualTo("new_image2.jpg");
-            assertThat(response.imageUrls().get(1).imageId()).isEqualTo(4L);
+            // 기존 이미지와 변경 x
+            assertThat(response.imageUrls().get(0).imageUrl()).isEqualTo("existingImage1.jpg");
+            assertThat(response.imageUrls().get(0).imageId()).isEqualTo(1L);
+            assertThat(response.imageUrls().get(1).imageUrl()).isEqualTo("existingImage2.jpg");
+            assertThat(response.imageUrls().get(1).imageId()).isEqualTo(2L);
         }
 
         @Test
@@ -210,8 +201,11 @@ public class ProductServiceTest {
             when(auctionRepository.existsByProductId(anyLong())).thenReturn(false);
 
             // when
-            UpdateProductResponse response = productService.updateProduct(user.getId(), 1L, updateRequest2,
-                    Collections.emptyList());
+            UpdateProductResponse response = productService.updateProduct(
+                    user.getId(),
+                    1L,
+                    updateRequest2,
+                    new HashMap<>());
 
             // then
             assertThat(response).isNotNull();
@@ -263,18 +257,24 @@ public class ProductServiceTest {
         @DisplayName("7. 이미지 삭제 시 새 이미지 추가 테스트")
         void updateProduct_WithImageChanges() {
             // given
-            List<MultipartFile> newImages = createMockMultipartFiles();
-            List<Image> existingImages = createExistingImages();
-            existingProduct.addImages(existingImages);
+            Map<String, MultipartFile> newImages = createMockMultipartFiles();
 
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(existingProduct));
             when(auctionRepository.existsByProductId(anyLong())).thenReturn(false);
-            when(imageService.uploadImages(anyList())).thenReturn(Arrays.asList("testImage1.jpg", "testImage2.jpg"));
-            when(imageService.saveProductImageEntities(any(Product.class), anyList()))
+
+            when(imageService.uploadSequentialImages(anyMap()))
                     .thenReturn(List.of(
-                            new Image(3L, "new_image1.jpg", existingProduct),
-                            new Image(4L, "new_image2.jpg", existingProduct))
-                    );
+                            new Image(1L, "new_image1.jpg", 2, existingProduct),
+                            new Image(2L, "new_image2.jpg", 1, existingProduct)
+                    ));
+
+            UpdateProductRequest updateRequest = UpdateProductRequest.builder()
+                    .productName("수정된 상품")
+                    .description("수정된 설명")
+                    .category(HOME_APPLIANCES)
+                    .minPrice(20000)
+                    .imageSequence(Collections.emptyMap())
+                    .build();
 
             // when
             UpdateProductResponse response = productService.updateProduct(
@@ -286,11 +286,12 @@ public class ProductServiceTest {
 
             // then
             assertEquals(2, response.imageUrls().size());
+            verify(imageService).updateExistingImages(existingProduct, updateRequest);
 
             assertThat(response.imageUrls().get(0).imageUrl()).isEqualTo("new_image1.jpg");
-            assertThat(response.imageUrls().get(0).imageId()).isEqualTo(3L);
+            assertThat(response.imageUrls().get(0).imageId()).isEqualTo(1L);
             assertThat(response.imageUrls().get(1).imageUrl()).isEqualTo("new_image2.jpg");
-            assertThat(response.imageUrls().get(1).imageId()).isEqualTo(4L);
+            assertThat(response.imageUrls().get(1).imageId()).isEqualTo(2L);
         }
 
         @Test
@@ -306,12 +307,10 @@ public class ProductServiceTest {
         }
 
         @Test
-        @DisplayName("10. 모든 기존 이미지 삭제 후 새 이미지 한 개 추가")
+        @DisplayName("9. 모든 기존 이미지 삭제 후 새 이미지 한 개 추가")
         void updateProduct_EmptyImageList() {
             // Given
-            List<Image> existingImages = createExistingImages();
-            existingProduct.addImages(existingImages);
-            List<MultipartFile> newImages = List.of(
+            Map<String, MultipartFile> newImages = Map.of("1",
                     new MockMultipartFile(
                             "newImage",
                             "new_image.jpg",
@@ -325,17 +324,13 @@ public class ProductServiceTest {
                     .description("수정된 설명")
                     .category(HOME_APPLIANCES)
                     .minPrice(20000)
-                    .deleteImageList(List.of(1L, 2L))  // 모든 기존 이미지 삭제
+                    .imageSequence(Collections.emptyMap())
                     .build();
 
             when(productRepository.findById(anyLong())).thenReturn(Optional.of(existingProduct));
             when(auctionRepository.existsByProductId(anyLong())).thenReturn(false);
-            when(imageService.uploadImages(anyList())).thenReturn(List.of("new_image.jpg"));
-            when(imageService.saveProductImageEntities(any(Product.class), anyList()))
-                    .thenReturn(List.of(new Image(3L, "new_image.jpg", existingProduct)));
-
             // When
-            UpdateProductResponse response = productService.updateProduct(
+            productService.updateProduct(
                     user.getId(),
                     1L,
                     updateRequest,
@@ -343,9 +338,7 @@ public class ProductServiceTest {
             );
 
             // Then
-            assertEquals(1, response.imageUrls().size());
-            assertEquals("new_image.jpg", response.imageUrls().get(0).imageUrl());
-            assertEquals(3L, response.imageUrls().get(0).imageId());
+            verify(imageService).updateExistingImages(existingProduct, updateRequest);
         }
     }
 
@@ -485,7 +478,7 @@ public class ProductServiceTest {
         }
     }
 
-    private List<MultipartFile> createMockMultipartFiles() {
+    private Map<String, MultipartFile> createMockMultipartFiles() {
         MultipartFile mockFile1 = new MockMultipartFile(
                 "image1",
                 "image1.jpg",
@@ -500,13 +493,13 @@ public class ProductServiceTest {
                 "test image content 2".getBytes()
         );
 
-        return List.of(mockFile1, mockFile2);
+        return Map.of("1", mockFile1, "2", mockFile2);
     }
 
     private List<Image> createExistingImages() {
         return List.of(
-                new Image(1L, "existingImage1.jpg", existingProduct),
-                new Image(2L, "existingImage2.jpg", existingProduct)
+                new Image(1L, "existingImage1.jpg", 1, existingProduct),
+                new Image(2L, "existingImage2.jpg", 2, existingProduct)
         );
     }
 }

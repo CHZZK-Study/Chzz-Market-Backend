@@ -25,6 +25,8 @@ import org.chzz.market.domain.base.entity.BaseTimeEntity;
 import org.chzz.market.domain.image.entity.Image;
 import org.chzz.market.domain.like.entity.Like;
 import org.chzz.market.domain.product.dto.UpdateProductRequest;
+import org.chzz.market.domain.product.error.ProductErrorCode;
+import org.chzz.market.domain.product.error.ProductException;
 import org.chzz.market.domain.user.entity.User;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -112,20 +114,17 @@ public class Product extends BaseTimeEntity {
         return this.user.getId().equals(userId);
     }
 
-    public void clearImages() {
-        this.images.clear();
-    }
 
     public void addImages(List<Image> images) {
         this.images.addAll(images);
     }
 
-    public void removeImage(List<Image> images) {
-        this.images.removeAll(images);
-    }
 
     public Image getFirstImage() {
-        return images.stream().findFirst().orElse(null);
+        return images.stream()
+                .filter(image -> image.getSequence() == 1)
+                .findFirst()
+                .orElseThrow(() -> new ProductException(ProductErrorCode.IMAGE_NOT_FOUND));
     }
 
     public List<Long> getLikeUserIds() {

@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.chzz.market.domain.base.entity.BaseTimeEntity;
 import org.chzz.market.domain.product.entity.Product;
 
@@ -34,6 +35,10 @@ public class Image extends BaseTimeEntity {
 
     @Column(nullable = false)
     private String cdnPath;
+
+    @Column
+    @Setter
+    private int sequence;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")

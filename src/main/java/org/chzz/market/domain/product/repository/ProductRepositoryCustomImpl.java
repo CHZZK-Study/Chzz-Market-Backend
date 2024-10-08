@@ -12,6 +12,7 @@ import static org.chzz.market.domain.user.entity.QUser.user;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -109,7 +110,7 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
                     .select(new QImageResponse(image.id, image.cdnPath))
                     .from(image)
                     .where(image.product.id.eq(productId))
-                    .orderBy(image.id.asc())
+                    .orderBy(image.sequence.asc())
                     .fetch();
             response.addImageList(images);
             return response;
@@ -208,17 +209,11 @@ public class ProductRepositoryCustomImpl implements ProductRepositoryCustom {
 
     private JPQLQuery<Long> getFirstImageId() {
         QImage imageSub = new QImage("imageSub");
-        return JPAExpressions.select(imageSub.id.min())
+        return JPAExpressions.select(imageSub.id)
                 .from(imageSub)
-                .where(imageSub.product.id.eq(product.id));
+                .where(imageSub.product.id.eq(product.id)
+                        , imageSub.sequence.eq(Expressions.asNumber(1)));
     }
-
-//
-//    private JPQLQuery<Long> getLikeCount() {
-//        return JPAExpressions.select(like.count())
-//                .from(like)
-//                .where(like.product.eq(product));
-//    }
 
     /**
      * 사용자가 특정 상품을 좋아요(Like)했는지 여부를 확인합니다.

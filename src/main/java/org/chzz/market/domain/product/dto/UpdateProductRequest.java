@@ -4,8 +4,8 @@ import static org.chzz.market.domain.product.entity.Product.Category;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,5 +30,5 @@ public class UpdateProductRequest {
     private Integer minPrice;
 
     @Builder.Default
-    private List<Long> deleteImageList = new ArrayList<>();
+    private Map<Long,Integer> imageSequence = new HashMap<>();
 }

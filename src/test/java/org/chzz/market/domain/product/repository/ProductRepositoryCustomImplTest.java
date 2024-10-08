@@ -85,11 +85,11 @@ class ProductRepositoryCustomImplTest {
         ReflectionTestUtils.setField(product5, "createdAt", LocalDateTime.now().minusDays(1));
         productRepository.saveAll(List.of(product1, product2, product3, product4, product5));
 
-        image1 = Image.builder().product(product1).cdnPath("path/to/image1.jpg").build();
-        image2 = Image.builder().product(product2).cdnPath("path/to/image2.jpg").build();
-        image3 = Image.builder().product(product3).cdnPath("path/to/image3.jpg").build();
-        image4 = Image.builder().product(product4).cdnPath("path/to/image4.jpg").build();
-        image5 = Image.builder().product(product5).cdnPath("path/to/image5.jpg").build();
+        image1 = Image.builder().product(product1).cdnPath("path/to/image1.jpg").sequence(1).build();
+        image2 = Image.builder().product(product2).cdnPath("path/to/image2.jpg").sequence(1).build();
+        image3 = Image.builder().product(product3).cdnPath("path/to/image3.jpg").sequence(1).build();
+        image4 = Image.builder().product(product4).cdnPath("path/to/image4.jpg").sequence(1).build();
+        image5 = Image.builder().product(product5).cdnPath("path/to/image5.jpg").sequence(1).build();
         imageRepository.saveAll(List.of(image1, image2, image3, image4, image5));
 
         like1 = Like.builder().user(user2).product(product1).build();

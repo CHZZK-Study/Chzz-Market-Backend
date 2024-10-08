@@ -454,9 +454,10 @@ public class AuctionRepositoryCustomImpl implements AuctionRepositoryCustom {
      */
     private JPQLQuery<Long> getFirstImageId() {
         QImage imageSub = new QImage("imageSub");
-        return JPAExpressions.select(imageSub.id.min())
+        return JPAExpressions.select(imageSub.id)
                 .from(imageSub)
-                .where(imageSub.product.id.eq(product.id));
+                .where(imageSub.product.id.eq(product.id)
+                        , imageSub.sequence.eq(Expressions.asNumber(1)));
     }
 
     /**
@@ -494,6 +495,7 @@ public class AuctionRepositoryCustomImpl implements AuctionRepositoryCustom {
         return jpaQueryFactory.select(image.cdnPath)
                 .from(image)
                 .where(image.product.id.eq(productId))
+                .orderBy(image.sequence.asc())
                 .fetch();
     }
 

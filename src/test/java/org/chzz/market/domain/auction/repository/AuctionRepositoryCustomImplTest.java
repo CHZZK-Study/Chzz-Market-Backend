@@ -103,12 +103,12 @@ class AuctionRepositoryCustomImplTest {
         auctionRepository.saveAll(
                 List.of(auction1, auction2, auction3, auction4, auction5, auction6, auction7, auction8));
 
-        image1 = Image.builder().product(product1).cdnPath("path/to/image1_1.jpg").build();
-        image2 = Image.builder().product(product1).cdnPath("path/to/image1_2.jpg").build();
-        image3 = Image.builder().product(product2).cdnPath("path/to/image2.jpg").build();
-        image4 = Image.builder().product(product3).cdnPath("path/to/image3.jpg").build();
-        image5 = Image.builder().product(product4).cdnPath("path/to/image4.jpg").build();
-        image6 = Image.builder().product(product8).cdnPath("path/to/image5.jpg").build();
+        image1 = Image.builder().product(product1).cdnPath("path/to/image1_1.jpg").sequence(1).build();
+        image2 = Image.builder().product(product1).cdnPath("path/to/image1_2.jpg").sequence(2).build();
+        image3 = Image.builder().product(product2).cdnPath("path/to/image2.jpg").sequence(1).build();
+        image4 = Image.builder().product(product3).cdnPath("path/to/image3.jpg").sequence(1).build();
+        image5 = Image.builder().product(product4).cdnPath("path/to/image4.jpg").sequence(1).build();
+        image6 = Image.builder().product(product8).cdnPath("path/to/image5.jpg").sequence(1).build();
         imageRepository.saveAll(List.of(image1, image2, image3, image4, image5, image6));
 
         bid1 = Bid.builder().bidder(user2).auction(auction1).amount(2000L).build();

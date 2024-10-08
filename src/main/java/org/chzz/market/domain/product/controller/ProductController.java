@@ -4,6 +4,7 @@ import static org.chzz.market.domain.product.entity.Product.Category;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.chzz.market.common.config.LoginUser;
@@ -41,7 +42,7 @@ public class ProductController {
     private final ProductService productService;
     private final LikeService likeService;
 
-    /*
+    /**
      * 사전 등록 상품 목록 조회
      */
     @GetMapping
@@ -52,7 +53,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductListByCategory(category, userId, pageable));
     }
 
-    /*
+    /**
      * 상품 카테고리 목록 조회
      */
     @GetMapping("/categories")
@@ -60,7 +61,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.getCategories());
     }
 
-    /*
+    /**
      * 사전 등록 상품 상세 정보 조회
      */
     @GetMapping("/{productId}")
@@ -71,7 +72,7 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    /*
+    /**
      * 나의 사전 등록 상품 목록 조회
      */
     @GetMapping("/users/{nickname}")
@@ -88,7 +89,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductListByUserId(userId, pageable));
     }
 
-    /*
+    /**
      * 내가 참여한 사전경매 조회
      */
     @GetMapping("/history")
@@ -106,8 +107,8 @@ public class ProductController {
             @LoginUser Long userId,
             @PathVariable Long productId,
             @RequestPart("request") @Valid UpdateProductRequest request,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-        UpdateProductResponse response = productService.updateProduct(userId, productId, request, images);//TODO 2024 10 02 20:47:09 : N+1 문제
+            @RequestPart(value = "images", required = false) Map<String, MultipartFile> images) {
+        UpdateProductResponse response = productService.updateProduct(userId, productId, request, images);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
