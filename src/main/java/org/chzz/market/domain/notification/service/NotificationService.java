@@ -3,6 +3,7 @@ package org.chzz.market.domain.notification.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +14,9 @@ import org.chzz.market.domain.notification.error.NotificationErrorCode;
 import org.chzz.market.domain.notification.error.NotificationException;
 import org.chzz.market.domain.notification.repository.EmitterRepositoryImpl;
 import org.chzz.market.domain.notification.repository.NotificationRepository;
-import org.chzz.market.domain.token.entity.TokenType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -36,7 +37,7 @@ public class NotificationService {
      * @return SseEmitter 객체
      */
     public SseEmitter subscribe(Long userId) {
-        SseEmitter emitter = new SseEmitter(TokenType.ACCESS.getExpirationTime() * 1000L);
+        SseEmitter emitter = new SseEmitter(25 * 60 * 60 * 1000L); // 25시간으로 설정
         emitterRepository.save(userId, emitter);
         setupEmitterCallbacks(userId, emitter);
         sendInitialConnectionEvent(userId, emitter);
@@ -50,21 +51,26 @@ public class NotificationService {
      * @param userId      사용자 ID
      */
     public void sendRealTimeNotification(Long userId, NotificationSseResponse sseResponse) {
-        Optional<SseEmitter> findEmitter = emitterRepository.findById(userId);
-        findEmitter.ifPresent(emitter -> {
-            try {
-                emitter.send(SseEmitter.event()
-                        .id(userId + "_" + Instant.now().toEpochMilli())
-                        .name("notification")
-                        .data(objectMapper.writeValueAsString(sseResponse)));
-                log.info("SSE 전송: userId: {}, sseResponse: {}", userId, sseResponse);
-            } catch (IOException e) {
-                // 내부에서 추가로 IOException이 발생하므로, 프레임워크의 예외 처리 핸들러에 처리
-                log.info("사용자 ID {}의 끊어진 SSE 연결을 정리합니다.", userId);
-            }
+        Optional<List<SseEmitter>> findEmitter = emitterRepository.findByUserId(userId);
+        findEmitter.ifPresent(emitters -> {
+            emitters.forEach(emitter -> {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .id(userId + "_" + Instant.now().toEpochMilli())
+                            .name("notification")
+                            .data(objectMapper.writeValueAsString(sseResponse)));
+                    log.info("[SSE] 알림 전송 성공 UserId: {} {}", userId, sseResponse);
+                } catch (IOException e) {
+                    // 내부에서 추가로 IOException이 발생하므로, 프레임워크의 예외 처리 핸들러에 처리
+                    log.info("[SSE] 연결 정리 UserId: {}", userId);
+                }
+            });
         });
     }
 
+    /**
+     * 사용자의 알림 조회
+     */
     public Page<NotificationResponse> getNotifications(Long userId, Pageable pageable) {
         return notificationRepository.findByUserId(userId, pageable);
     }
@@ -82,6 +88,23 @@ public class NotificationService {
     }
 
     /**
+     * 모든 emitters에 하트비트 메시지를 주기적으로 전송하여 연결 상태를 확인
+     */
+    @Scheduled(fixedRate = 60000) // 1분마다 실행
+    public void sendHeartbeats() {
+        emitterRepository.findAllEmitters().forEach((userId, emitters) -> {
+            emitters.forEach(emitter -> {
+                try {
+                    emitter.send(SseEmitter.event().comment("heartbeat"));
+                } catch (IOException e) {
+                    // 내부에서 추가로 IOException이 발생하므로, 프레임워크의 예외 처리 핸들러에 처리
+                    log.info("[SSE] 연결 정리 UserId: {}", userId);
+                }
+            });
+        });
+    }
+
+    /**
      * SseEmitter의 콜백을 설정합니다.
      *
      * @param userId  사용자 ID
@@ -89,11 +112,11 @@ public class NotificationService {
      */
     private void setupEmitterCallbacks(Long userId, SseEmitter emitter) {
         emitter.onCompletion(() -> {
-            emitterRepository.deleteById(userId);
-            log.info("SSE connection completed for user {}", userId);
+            emitterRepository.deleteEmitter(userId, emitter);
+            log.info("[SSE] 연결 종료 UserId: {}", userId);
         });
         emitter.onTimeout(() -> {
-            log.info("SSE connection timed out for user {}", userId);
+            log.info("[SSE] 시간 초과 UserId: {}", userId);
         });
     }
 
@@ -105,13 +128,13 @@ public class NotificationService {
      */
     private void sendInitialConnectionEvent(Long userId, SseEmitter emitter) {
         try {
-            log.info("User {} subscribed to notifications with initial connection", userId);
+            log.info("[SSE] 연결 성공 UserId: {}", userId);
             emitter.send(SseEmitter.event()
                     .id(userId + "_" + Instant.now().toEpochMilli())
                     .name("init")
                     .data("Connection Established"));
         } catch (Exception e) {
-            log.error("Error sending initial connection event to user {}", userId);
+            log.info("[SSE] 연결 실패 UserId: {}", userId);
         }
     }
 
