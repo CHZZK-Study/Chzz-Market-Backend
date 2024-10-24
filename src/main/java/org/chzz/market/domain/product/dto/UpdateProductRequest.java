@@ -3,6 +3,7 @@ package org.chzz.market.domain.product.dto;
 import static org.chzz.market.domain.product.entity.Product.Category;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class UpdateProductRequest {
     @Size(min = 2, max = 30, message = "제목은 최소 2글자 이상 30자 이하여야 합니다")
     private String productName;
 
-    @Size(max = 1000, message = "상품 설명은 최대 1000자까지 가능합니다")
+    @Pattern(regexp = "^$|.{5,1000}$", message = "상품 설명은 최소 5자에서 최대 1000자까지 가능합니다")
     private String description;
 
     private Category category;

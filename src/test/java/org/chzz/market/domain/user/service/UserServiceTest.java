@@ -118,7 +118,6 @@ class UserServiceTest {
         updateUserProfileRequest = UpdateUserProfileRequest.builder()
                 .nickname("수정된 닉네임")
                 .bio("수정된 자기 소개")
-                .link("수정된 URL")
                 .build();
     }
 
@@ -130,8 +129,7 @@ class UserServiceTest {
         public void createUser_Success() throws Exception {
             // given
             Long userId = 1L;
-            UserCreateRequest userCreateRequest = new UserCreateRequest("bidderNickname", "KB", "1234567890",
-                    "bio", "http://link.com");
+            UserCreateRequest userCreateRequest = new UserCreateRequest("bidderNickname","bio");
             User user = User.builder()
                     .email("test@gmail.com")
                     .providerId("123456")
@@ -147,9 +145,7 @@ class UserServiceTest {
             // then
             assertThat(user.getNickname()).isEqualTo(userCreateRequest.getNickname());
             assertThat(user.getBio()).isEqualTo(userCreateRequest.getBio());
-            assertThat(user.getLink()).isEqualTo(userCreateRequest.getLink());
             assertThat(user.getUserRole()).isEqualTo(UserRole.USER);
-            assertThat(user.getBankAccounts()).hasSize(1);
         }
 
         @Test
@@ -157,8 +153,7 @@ class UserServiceTest {
         public void createUser_WhenBioAndLinkAreEmptyStrings_ThenFieldsAreSetToNull() throws Exception {
             // given
             Long userId = 1L;
-            UserCreateRequest userCreateRequest = new UserCreateRequest("newNickname", "KB", "1234567890",
-                    "", "");
+            UserCreateRequest userCreateRequest = new UserCreateRequest("newNickname", "");
             User user = User.builder()
                     .email("test@gmail.com")
                     .providerId("123456")
@@ -174,9 +169,7 @@ class UserServiceTest {
             // then
             assertThat(user.getNickname()).isEqualTo(userCreateRequest.getNickname());
             assertThat(user.getBio()).isNull();
-            assertThat(user.getLink()).isNull();
             assertThat(user.getUserRole()).isEqualTo(UserRole.USER);
-            assertThat(user.getBankAccounts()).hasSize(1);
         }
 
         @Test
@@ -260,7 +253,6 @@ class UserServiceTest {
             // then
             assertThat(user1.getNickname()).isEqualTo("수정된 닉네임");
             assertThat(user1.getBio()).isEqualTo("수정된 자기 소개");
-            assertThat(user1.getLink()).isEqualTo("수정된 URL");
         }
 
         @Test
@@ -285,7 +277,6 @@ class UserServiceTest {
             // then
             assertThat(user1.getNickname()).isEqualTo("수정된 닉네임");
             assertThat(user1.getBio()).isEqualTo("수정된 자기 소개");
-            assertThat(user1.getLink()).isEqualTo("수정된 URL");
             assertThat(user1.getProfileImageUrl()).isEqualTo("https://cdn.example.com/image.jpg");
         }
 
@@ -299,7 +290,6 @@ class UserServiceTest {
             UpdateUserProfileRequest request = UpdateUserProfileRequest.builder()
                     .nickname("수정된 닉네임")
                     .bio("수정된 자기 소개")
-                    .link("수정된 URL")
                     .useDefaultImage(true)
                     .build();
 
@@ -310,7 +300,6 @@ class UserServiceTest {
             assertThat(user3.getProfileImageUrl()).isNull(); // 기본 이미지로 변경 시 URL은 null
             assertThat(user3.getNickname()).isEqualTo("수정된 닉네임");
             assertThat(user3.getBio()).isEqualTo("수정된 자기 소개");
-            assertThat(user3.getLink()).isEqualTo("수정된 URL");
         }
 
         @Test
@@ -332,7 +321,6 @@ class UserServiceTest {
             UpdateUserProfileRequest request = UpdateUserProfileRequest.builder()
                     .nickname("수정된 닉네임")
                     .bio("수정된 자기 소개")
-                    .link("수정된 URL")
                     .build();
 
             // when
@@ -342,7 +330,6 @@ class UserServiceTest {
             assertThat(user3.getProfileImageUrl()).isEqualTo("https://cdn.example.com/new-image.jpg");
             assertThat(user3.getNickname()).isEqualTo("수정된 닉네임");
             assertThat(user3.getBio()).isEqualTo("수정된 자기 소개");
-            assertThat(user3.getLink()).isEqualTo("수정된 URL");
         }
 
         @Test

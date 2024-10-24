@@ -2,6 +2,7 @@ package org.chzz.market.domain.auction.repository;
 
 import static org.chzz.market.common.util.QuerydslUtil.nullSafeBuilder;
 import static org.chzz.market.domain.auction.entity.QAuction.auction;
+import static org.chzz.market.domain.auction.repository.AuctionRepositoryCustomImpl.AuctionOrder.NEWEST;
 import static org.chzz.market.domain.auction.repository.AuctionRepositoryCustomImpl.AuctionOrder.POPULARITY;
 import static org.chzz.market.domain.auction.type.AuctionStatus.ENDED;
 import static org.chzz.market.domain.auction.type.AuctionStatus.PROCEEDING;
@@ -246,7 +247,7 @@ public class AuctionRepositoryCustomImpl implements AuctionRepositoryCustom {
         JPAQuery<?> baseQuery = jpaQueryFactory.from(auction)
                 .join(auction.product, product)
                 .where(auction.status.eq(PROCEEDING))
-                .orderBy(POPULARITY.getOrderSpecifier());
+                .orderBy(POPULARITY.getOrderSpecifier(), NEWEST.getOrderSpecifier());
 
         return baseQuery.select(new QAuctionResponse(
                         auction.id,

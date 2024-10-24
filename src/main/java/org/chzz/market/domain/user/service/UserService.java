@@ -70,7 +70,6 @@ public class UserService {
             throw new UserException(NICKNAME_DUPLICATION);
         });
         user.createUser(userCreateRequest);
-        user.addBankAccount(userCreateRequest.toBankAccount());
         return user;
     }
 

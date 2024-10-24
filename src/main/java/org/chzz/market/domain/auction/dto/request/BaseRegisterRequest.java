@@ -4,9 +4,9 @@ import static org.chzz.market.domain.product.entity.Product.Category;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,8 +30,7 @@ public abstract class BaseRegisterRequest {
     @Size(min = 2, max = 30, message = "제목은 최소 2글자 이상 30자 이하여야 합니다")
     protected String productName;
 
-    @NotNull
-    @Size(max = 1000, message = "상품 설명은 최대 1000자까지 가능합니다")
+    @Pattern(regexp = "^$|.{5,1000}$", message = "상품 설명은 최소 5자에서 최대 1000자까지 가능합니다")
     protected String description;
 
     @NotNull(message = "카테고리를 선택해주세요")

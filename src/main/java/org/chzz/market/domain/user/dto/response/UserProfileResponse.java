@@ -6,7 +6,6 @@ import org.chzz.market.domain.user.entity.User;
 public record UserProfileResponse(
         String nickname,
         String bio,
-        String link,
         String profileImageUrl,
         @JsonInclude(JsonInclude.Include.NON_NULL)
         String providerType,
@@ -22,7 +21,6 @@ public record UserProfileResponse(
         return new UserProfileResponse(
                 user.getNickname(),
                 user.getBio(),
-                user.getLink(),
                 user.getProfileImageUrl(),
                 includeProviderType ? user.getProviderType().name() : null,
                 counts,

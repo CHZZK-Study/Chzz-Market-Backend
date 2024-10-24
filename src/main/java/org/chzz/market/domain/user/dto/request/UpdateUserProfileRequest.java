@@ -1,7 +1,6 @@
 package org.chzz.market.domain.user.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,9 +17,6 @@ public class UpdateUserProfileRequest {
     private String nickname;
 
     private String bio;
-
-    @Pattern(regexp = "^(http|https)://.*$|^$", message = "링크는 유효한 URL 형식이어야 합니다.")
-    private String link;
 
     @Builder.Default
     private Boolean useDefaultImage = false;
